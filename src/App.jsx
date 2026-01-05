@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { FaEye, FaEdit, FaTrash, FaSearch } from 'react-icons/fa'
 
+// API URL - funciona tanto en desarrollo como en producción
+const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:3000/api'
+
 function App() {
   const [menuActual, setMenuActual] = useState('inicio')
   const [celulares, setCelulares] = useState([])
@@ -12,7 +15,7 @@ function App() {
 
   // Cargar datos desde la API al iniciar
   useEffect(() => {
-    fetch('http://localhost:3000/api/celulares')
+    fetch(`${API_URL}/celulares`)
       .then(response => response.json())
       .then(data => {
         setCelulares(data)
@@ -39,7 +42,7 @@ function App() {
     try {
       if (celularEditando) {
         // Editar celular existente
-        const response = await fetch(`http://localhost:3000/api/celulares/${celularEditando.id}`, {
+        const response = await fetch(`${API_URL}/celulares/${celularEditando.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -65,7 +68,7 @@ function App() {
         })
       } else {
         // Crear nuevo celular
-        const response = await fetch('http://localhost:3000/api/celulares', {
+        const response = await fetch(`${API_URL}/celulares`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -115,7 +118,7 @@ function App() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await fetch(`http://localhost:3000/api/celulares/${id}`, {
+          await fetch(`${API_URL}/celulares/${id}`, {
             method: 'DELETE'
           })
           
