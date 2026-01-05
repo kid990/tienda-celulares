@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react'
 import { FaEye, FaEdit, FaTrash, FaSearch } from 'react-icons/fa'
-
-// API URL - funciona tanto en desarrollo como en producción
-const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:3000/api'
+import { db } from './firebase'
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc 
+} from 'firebase/firestore'
 
 function App() {
   const [menuActual, setMenuActual] = useState('inicio')
@@ -13,16 +19,21 @@ function App() {
   const [paginaActual, setPaginaActual] = useState(1)
   const [itemsPorPagina, setItemsPorPagina] = useState(10)
 
-  // Cargar datos desde la API al iniciar
+  // Cargar datos desde Firebase al iniciar
   useEffect(() => {
-    fetch(`${API_URL}/celulares`)
-      .then(response => response.json())
-      .then(data => {
-        setCelulares(data)
-      })
-      .catch(error => {
+    const cargarCelulares = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'celulares'))
+        const celularesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        setCelulares(celularesData)
+      } catch (error) {
         console.error('Error al cargar celulares:', error)
-      })
+      }
+    }
+    cargarCelulares()
   }, [])
 
   const handleSubmit = async (e) => {
@@ -41,19 +52,12 @@ function App() {
     
     try {
       if (celularEditando) {
-        // Editar celular existente
-        const response = await fetch(`${API_URL}/celulares/${celularEditando.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(celularData)
-        })
-        
-        const celularActualizado = await response.json()
+        // Editar celular existente en Firebase
+        const celularRef = doc(db, 'celulares', celularEditando.id)
+        await updateDoc(celularRef, celularData)
         
         setCelulares(celulares.map(cel => 
-          cel.id === celularEditando.id ? celularActualizado : cel
+          cel.id === celularEditando.id ? { id: celularEditando.id, ...celularData } : cel
         ))
         setCelularEditando(null)
         
@@ -67,16 +71,9 @@ function App() {
           toast: true
         })
       } else {
-        // Crear nuevo celular
-        const response = await fetch(`${API_URL}/celulares`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(celularData)
-        })
-        
-        const nuevoCelular = await response.json()
+        // Crear nuevo celular en Firebase
+        const docRef = await addDoc(collection(db, 'celulares'), celularData)
+        const nuevoCelular = { id: docRef.id, ...celularData }
         setCelulares([...celulares, nuevoCelular])
         
         // Alerta de éxito para registro
@@ -118,9 +115,8 @@ function App() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await fetch(`${API_URL}/celulares/${id}`, {
-            method: 'DELETE'
-          })
+          // Eliminar de Firebase
+          await deleteDoc(doc(db, 'celulares', id))
           
           const celularesActualizados = celulares.filter(cel => cel.id !== id)
           setCelulares(celularesActualizados)
