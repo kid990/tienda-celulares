@@ -162,12 +162,12 @@ function App() {
   const celularesFiltrados = celulares.filter(celular => {
     const searchTerm = busqueda.toLowerCase()
     return (
-      celular.marca.toLowerCase().includes(searchTerm) ||
-      celular.modelo.toLowerCase().includes(searchTerm) ||
-      celular.almacenamiento.toLowerCase().includes(searchTerm) ||
-      celular.ram.toLowerCase().includes(searchTerm) ||
-      celular.color.toLowerCase().includes(searchTerm) ||
-      celular.precioVenta.toString().includes(searchTerm)
+      (celular.marca?.toLowerCase() || '').includes(searchTerm) ||
+      (celular.modelo?.toLowerCase() || '').includes(searchTerm) ||
+      (celular.almacenamiento?.toLowerCase() || '').includes(searchTerm) ||
+      (celular.ram?.toLowerCase() || '').includes(searchTerm) ||
+      (celular.color?.toLowerCase() || '').includes(searchTerm) ||
+      (celular.precioVenta?.toString() || '').includes(searchTerm)
     )
   })
 
